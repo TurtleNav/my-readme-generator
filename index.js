@@ -26,7 +26,7 @@ try {
 // TODO: Create an array of questions for user input
 
 function isValid(input, answers) {
-	
+
 	return (input.trim().length > 0);
 }
 
@@ -42,7 +42,25 @@ const questions = [
 		name: "installationInstructions",
 		type: "editor",
 		postfix: ".md"
-	}
+	},
+	{
+		message: "Can you provide usage information for your project?",
+		name: "usageInformation",
+		type: "editor",
+		postfix: ".md"
+	},
+	{
+		message: "Can you provide contribution guidelines for your project?",
+		name: "contributionGuidelines",
+		type: "editor",
+		postfix: ".md"
+	},
+	{
+		message: "Can you provide usage information for your project?",
+		name: "usageInformation",
+		type: "editor",
+		postfix: ".md"
+	},
 ];
 
 // TODO: Create a function to write README file
