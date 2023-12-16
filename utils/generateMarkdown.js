@@ -31,6 +31,14 @@ function renderLicenseLink(license) {}
 // TODO: Create a function that returns the license section of README
 // If there is no license, return an empty string
 
+// class containing markdown section metadata
+class Section {
+  constructor(name, subsections) {
+    this.name = name;
+    subsections ? this.subsections = subsections : this.subsections = [];
+  }
+}
+
 function renderLicenseSection(license) {}
 
 /*

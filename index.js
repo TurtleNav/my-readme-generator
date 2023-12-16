@@ -31,67 +31,60 @@ function isValid(input, answers) {
 }
 
 // 
-const questionsRound1 = [
-	{
-		message: "What is your project title?",
-		name: "projectTitle",
-		type: "input",
-		validate: isValid
-	},
-	{
-		message: "Select the sections you would like to add to your README",
-		name: "selectedSections",
-		type: "checkbox",
-		choices: [
-			"Table of Contents", "Installation Instructions", "Dependencies",
-			"Usage Information", "Contribution Guidelines", "Tests",
-			"Contributing", "License"
-		],
-	},
-];
+let userSections = [];
+async function promptRound1() {
 
-const questions = [
-	{
-		message: "What is your project title?",
-		name: "projectTitle",
-		type: "input",
-		validate: isValid
-	},
-	{
-		message: "Select the sections you would like to add to your README",
-		name: "sections",
-		type: "checkbox",
-		choices: [
-			"Table of Contents", "Installation Instructions", "Dependencies",
-			"Usage Information", "Contribution Guidelines", "Tests",
-			"Contributing", "License"
-		],
-	},
-	{
-		message: "Can you provide installation instructions for your project?",
-		name: "installationInstructions",
-		type: "editor",
-		postfix: ".md"
-	},
-	{
-		message: "Can you provide usage information for your project?",
-		name: "usageInformation",
-		type: "editor",
-		postfix: ".md"
-	},
-	{
-		message: "Can you provide contribution guidelines for your project?",
-		name: "contributionGuidelines",
-		type: "editor",
-		postfix: ".md"
-	},
-	{
-		message: "Can you provide usage information for your project?",
-		name: "usageInformation",
-		type: "editor",
-		postfix: ".md"
-	},
-];
+	const questions = [
+		{
+			message: "What is your project title?",
+			name: "projectTitle",
+			type: "input",
+			validate: isValid
+		},
+		{
+			message: "Select the sections you would like to add to your README",
+			name: "selectedSections",
+			type: "checkbox",
+			choices: [
+				"Table of Contents", "Installation Instructions", "Dependencies",
+				"Usage Information", "Contribution Guidelines", "Tests",
+				"Contributing", "License"
+			],
+		},
+	];
+
+	return await inquirer
+		.prompt(questions)
+		.then((answers) => {
+			return [`# ${answers.projectTitle}\n`, answers.selectedSections];
+		})
+		;
+}
+
+function promptRound2(markdownText, sections) {
+	const wantTableOfContents = !!sections.splice(sections.indexOf("Table of Contents"), 1).length;
+	let questions = [];
+	for (const section of sections) {
+		let message, name;
+
+		function getSafeName(sectionName) {
+			return sectionName.replace(" ", "");
+		};
+
+		questions.push({
+			message: `Can you provide information on ${section} for your project?`,
+			name: ToCamel(section),
+			type: "editor",
+			postfix: ".md"
+		});
+	}
+
+	inquirer
+		.prompt(questions)
+		.then((answers) => {
+			console.log(answers);
+		})
+}
 
 // A wrapper around fs.writeFile that handles creating our README while also
 // checking if a README already exists
@@ -113,20 +106,29 @@ function writeReadMe(fileName, data) {
 	fs.writeFile(fileName, data, "utf8", (error) => error ? console.error(error): console.log("Successfully created README"));
 }
 
-
-
-function prompt1() {
-	inquirer
+function ToCamel(string) {
+	isLowerCaseChar = (charCode) => (charCode > 96) && (charCode < 123);
+	toUpperCaseChar = (charCode) => (charCode - 32);
+	return string.split(" ").reduce((accum, word) => {
+		if (!accum) {
+			return word;
+		}
+		const firstCharCode = word.charCodeAt(0);
+		if (!isLowerCaseChar(firstCharCode)){
+			return accum + word;
+		}
+		return accum + String.fromCharCode(toUpperCaseChar(firstCharCode)) + word.substring(1);
+	}, "");
 }
 
 // TODO: Create a function to initialize app
-function init() {
-	inquirer
-		.prompt(questions)
-		.then((answers) => {
-			console.log("Hey your answers are: ", answers);
-		})
+async function init() {
+	// await our first prompt so we receive all the desired sections the
+	// user wishes to add to their read me
+	let [markdownText, userSections] = await promptRound1();
+	promptRound2(markdownText, userSections);
 }
 
 // Function call to initialize app
 init();
+
