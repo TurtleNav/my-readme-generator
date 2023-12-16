@@ -63,9 +63,24 @@ const questions = [
 	},
 ];
 
-// TODO: Create a function to write README file
-function writeToFile(fileName, data) {
-    fs.writeFile(fileName, data, "utf8", (error) => console.error(error));
+// A wrapper around fs.writeFile that handles creating our README while also
+// checking if a README already exists
+function writeReadMe(fileName, data) {
+	if (fs.existsSync(fileName)) {
+		inquirer
+			.prompt([
+				{
+					message: "A README with that filename already exists. Would you like to write over it?",
+					name: "addFile",
+					type: "confirm"
+				}])
+			.then((answer) => {
+				if (!answer.addFile) {
+					return;
+				}
+			})
+	}
+	fs.writeFile(fileName, data, "utf8", (error) => console.error(error));
 }
 
 // TODO: Create a function to initialize app
