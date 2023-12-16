@@ -38,6 +38,16 @@ const questions = [
 		validate: isValid
 	},
 	{
+		message: "Select the sections you would like to add to your README",
+		name: "sections",
+		type: "checkbox",
+		choices: [
+			"Table of Contents", "Installation Instructions", "Dependencies",
+			"Usage Information", "Contribution Guidelines", "Tests",
+			"Contributing", "License"
+		],
+	},
+	{
 		message: "Can you provide installation instructions for your project?",
 		name: "installationInstructions",
 		type: "editor",
@@ -83,13 +93,39 @@ function writeReadMe(fileName, data) {
 	fs.writeFile(fileName, data, "utf8", (error) => console.error(error));
 }
 
+/*
+	 Create a table of contents markdown string like the following:
+
+	 # Table of Contents
+	 1. [Header 1](#header-1)
+	 2. [Header 2](#header-2)
+	 ...
+
+	 ## Header 1
+	 ...
+
+	 ## Header 2
+	 ...
+*/
+function generateTableOfContents(...sections) {
+	let templateString = `# Table of Contents\n`;
+	
+	for (let i=0; i<sections.length; i++) {
+		const section = sections[i];
+		// main string creation logic. markdown links can't have whitespace so this code
+		// replaces all spaces with a '-'
+		templateString += `${i+1}. [${section}](#${section.trim().replaceAll(" ", "-")})\n`
+	}
+	return templateString;
+}
+
 // TODO: Create a function to initialize app
 function init() {
 	inquirer
 		.prompt(questions)
 		.then((answers) => {
 			console.log("Hey your answers are: ", answers);
-		});
+		})
 }
 
 // Function call to initialize app
