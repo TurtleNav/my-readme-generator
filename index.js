@@ -30,6 +30,26 @@ function isValid(input, answers) {
 	return (input.trim().length > 0);
 }
 
+// 
+const questionsRound1 = [
+	{
+		message: "What is your project title?",
+		name: "projectTitle",
+		type: "input",
+		validate: isValid
+	},
+	{
+		message: "Select the sections you would like to add to your README",
+		name: "selectedSections",
+		type: "checkbox",
+		choices: [
+			"Table of Contents", "Installation Instructions", "Dependencies",
+			"Usage Information", "Contribution Guidelines", "Tests",
+			"Contributing", "License"
+		],
+	},
+];
+
 const questions = [
 	{
 		message: "What is your project title?",
@@ -90,33 +110,13 @@ function writeReadMe(fileName, data) {
 				}
 			})
 	}
-	fs.writeFile(fileName, data, "utf8", (error) => console.error(error));
+	fs.writeFile(fileName, data, "utf8", (error) => error ? console.error(error): console.log("Successfully created README"));
 }
 
-/*
-	 Create a table of contents markdown string like the following:
 
-	 # Table of Contents
-	 1. [Header 1](#header-1)
-	 2. [Header 2](#header-2)
-	 ...
 
-	 ## Header 1
-	 ...
-
-	 ## Header 2
-	 ...
-*/
-function generateTableOfContents(...sections) {
-	let templateString = `# Table of Contents\n`;
-	
-	for (let i=0; i<sections.length; i++) {
-		const section = sections[i];
-		// main string creation logic. markdown links can't have whitespace so this code
-		// replaces all spaces with a '-'
-		templateString += `${i+1}. [${section}](#${section.trim().replaceAll(" ", "-")})\n`
-	}
-	return templateString;
+function prompt1() {
+	inquirer
 }
 
 // TODO: Create a function to initialize app
@@ -129,4 +129,4 @@ function init() {
 }
 
 // Function call to initialize app
-init();
+//init();
