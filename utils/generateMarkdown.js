@@ -31,9 +31,15 @@ function renderLicenseLink(license) {}
 // TODO: Create a function that returns the license section of README
 // If there is no license, return an empty string
 
-// class containing markdown section metadata
-const sectionRe = new RegExp("^(?<level>#{1,6})[\t\u0020]*(?<name>.+)");
 
+const sectionRe = new RegExp("^[\t\u0020]*(?<level>#{1,6})[\t\u0020]*(?<name>.+)");
+const newLineRe = new RegExp("\r?\n+");
+
+/*
+  A class containing markdown section data. Used exclusively by the createSectionTree function.
+
+  These Sections are used to create a table of contents
+*/
 class Section {
 	constructor(name, level, parent, subsections) {
 	  this.name = name;
@@ -61,7 +67,7 @@ class Section {
 function createSectionTree(markdownText) {
 	let sectionTree = [];
 	let prevSection, root;
-	for (const line of markdownText.split("\n")) {
+	for (const line of markdownText.split(newLineRe)) {
 		const result = line.match(sectionRe);
 		if (!result) {
 			continue;
@@ -97,18 +103,6 @@ function createSectionTree(markdownText) {
 		}
 		prevSection = currentSection;
 	}
-	for (const root of sectionTree) {
-		console.log("root -> ", root.name);
-		for (const children of root.subsections) {
-			console.log("child level 1 -> ", children.name);
-			for (const child2 of children.subsections) {
-				console.log("child level 2 -> ", child2.name);
-				for (const child3 of child2.subsections) {
-					console.log("child level 3 -> ", child3.name);
-				}
-			}
-		}
-	}
 	return sectionTree;
 }
 
@@ -128,23 +122,44 @@ function renderLicenseSection(license) {}
 	 ## Header 2
 	 ...
 */
-function renderTableOfContents(...sections) {
+/*
+	 Final function in the pipeline of rendering a markdown table of contents from user
+	input. All that remains is to properly place the table of contents within the document.
+
+	[Project Title]
+	text
+
+	[Table of Contents]
+	...
+
+	[Remainder of Document]
+*/	 
+function renderTableOfContents(sectionTree) {
 	let templateString = `# Table of Contents\n`;
-	
-	for (let i=0; i<sections.length; i++) {
-		const section = sections[i];
-		// main string creation logic. markdown links can't have whitespace so this code
-		// replaces all spaces with a '-'
-		templateString += `${i+1}. [${section}](#${section.trim().replaceAll(" ", "-")})\n`
+	function walkSection(section, n) {
+		templateString += "\t\t".repeat(section.level - 1);
+		templateString += `${n+1}. [${section.name}](#${section.name.trim().replaceAll(" ", "-")})\n`;
+		let m = 0;
+		for (const subsection of section.subsections) {
+			walkSection(subsection, m);
+			m++;
+		}
 	}
+	sectionTree.forEach((section, i) => walkSection(section, i));
 	return templateString;
 }
 
 // TODO: Create a function to generate markdown for README
-function generateMarkdown(data) {
-  return `# ${data.title}
-
-`;
+function generateMarkdown(title, wantTableOfContents=false, ...sections) {
+	let markdownText = `${title}\n\n`;
+	if (wantTableOfContents) {
+		const sectionTree = createSectionTree(sections);
+		markdownText += `${renderTableOfContents(sectionTree)}\n`;
+	}
+	for (const section of sections) {
+		markdownText += `${section.text}\n`;
+	}
+	return markdownText;
 }
 
-module.exports = generateMarkdown;
+module.exports = [generateMarkdown, Section];

@@ -2,6 +2,9 @@
 const fs = require("fs");
 const inquirer = require("inquirer");
 
+const [generateMarkdown, Section] = require("./utils/generateMarkdown");
+
+
 /*
 	The below code is a hacky way to fix Issue #1144 of Inquirer on github: 
 	https://github.com/SBoudrias/Inquirer.js/issues/1144
@@ -56,33 +59,32 @@ async function promptRound1() {
 	return await inquirer
 		.prompt(questions)
 		.then((answers) => {
-			return [`# ${answers.projectTitle}\n`, answers.selectedSections];
+			return [answers.projectTitle, answers.selectedSections];
 		})
 		;
 }
 
-function promptRound2(markdownText, sections) {
+// This prompt phase gives the user the ability to provide text content to each section they wished
+// to add to their README.
+async function promptRound2(sections) {
+	// Cheaty one liner to both remove a "Table of Contents" entry in the sections array (if it is present)
+	// AND store whether or not it was in there in a boolean
 	const wantTableOfContents = !!sections.splice(sections.indexOf("Table of Contents"), 1).length;
-	let questions = [];
-	for (const section of sections) {
-		let message, name;
 
-		function getSafeName(sectionName) {
-			return sectionName.replace(" ", "");
-		};
-
-		questions.push({
+	// dynamically add questions regarding only the sections the user specified
+	questions = sections.map((section) => {
+		return {
 			message: `Can you provide information on ${section} for your project?`,
-			name: ToCamel(section),
+			name: section,
 			type: "editor",
 			postfix: ".md"
-		});
-	}
-
-	inquirer
+		}
+	});
+	return await inquirer
 		.prompt(questions)
 		.then((answers) => {
-			console.log(answers);
+			console.log("answers -> ", answers);
+			return [wantTableOfContents, answers];
 		})
 }
 
@@ -127,9 +129,9 @@ function ToCamel(string) {
 async function init() {
 	// await our first prompt so we receive all the desired sections the
 	// user wishes to add to their read me
-	let [markdownText, userSections] = await promptRound1();
-	promptRound2(markdownText, userSections);
+	let [title, userSections] = await promptRound1();
+	promptRound2(userSections);
 }
 
 // Function call to initialize app
-//init();
+init();
