@@ -121,6 +121,8 @@ function ToCamel(string) {
 	}, "");
 }
 
+
+
 // TODO: Create a function to initialize app
 async function init() {
 	// await our first prompt so we receive all the desired sections the
@@ -130,5 +132,4 @@ async function init() {
 }
 
 // Function call to initialize app
-init();
-
+//init();

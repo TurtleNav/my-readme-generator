@@ -32,11 +32,84 @@ function renderLicenseLink(license) {}
 // If there is no license, return an empty string
 
 // class containing markdown section metadata
+const sectionRe = new RegExp("^(?<level>#{1,6})[\t\u0020]*(?<name>.+)");
+
 class Section {
-  constructor(name, subsections) {
-    this.name = name;
-    subsections ? this.subsections = subsections : this.subsections = [];
-  }
+	constructor(name, level, parent, subsections) {
+	  this.name = name;
+	  this.level = level;
+	  this.parent = parent;
+	  subsections ? this.subsections = subsections : this.subsections = [];
+	}
+}
+
+/*
+	This function is my pride and joy. Creates a circular array (of sorts) that contains each
+	section in a markdown text:
+		# Section 1
+		## Sub Section 1.1
+		## Sub Section 1.2
+		### Sub Sub Section 1.2.1
+		# Section 2
+		...
+	Section traversal is handled by two properties of the Section object:
+		'parent' -> parent section of the current section
+		'subsections' -> an array of all sub sections of the current section
+	
+	The returned array can be flattened for creation into a table of contents
+*/
+function createSectionTree(markdownText) {
+	let sectionTree = [];
+	let prevSection, root;
+	for (const line of markdownText.split("\n")) {
+		const result = line.match(sectionRe);
+		if (!result) {
+			continue;
+		}
+		const currentSection = new Section(result.groups.name, result.groups.level.length);
+		// First iteration / new root section are handled the same:
+		if (!root || (currentSection.level <= root.level)) {
+			sectionTree.push(currentSection);
+			prevSection = currentSection;
+			root = currentSection;
+			continue;
+		}
+
+		// If the previous section has no parent then it is a root section and we add the
+		// section immediately to the parent's subsection
+		if (!prevSection.parent) {
+			currentSection.parent = root;
+			root.subsections.push(currentSection);
+			prevSection = currentSection;
+			continue;
+		}
+
+		if (currentSection.level > prevSection.level) {
+			currentSection.parent = prevSection;
+			prevSection.subsections.push(currentSection);
+		} else {
+			// recursively travel up until we are at an adequate level for the section
+			while (currentSection.level < prevSection.level) {
+				prevSection = prevSection.parent
+			}
+			prevSection.parent.subsections.push(currentSection);
+			currentSection.parent = prevSection.parent;
+		}
+		prevSection = currentSection;
+	}
+	for (const root of sectionTree) {
+		console.log("root -> ", root.name);
+		for (const children of root.subsections) {
+			console.log("child level 1 -> ", children.name);
+			for (const child2 of children.subsections) {
+				console.log("child level 2 -> ", child2.name);
+				for (const child3 of child2.subsections) {
+					console.log("child level 3 -> ", child3.name);
+				}
+			}
+		}
+	}
+	return sectionTree;
 }
 
 function renderLicenseSection(license) {}
