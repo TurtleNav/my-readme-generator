@@ -1,37 +1,48 @@
+// Array of all licenses supported by this project
+const licenseCommonNames = ["Apache License v2.0", "BSD-2", "BSD-3", "GNU GPL v2", "GNU GPL v3", "MIT"];
 
 // Mappings of common licenses to their respective shield badge links and license home page
-const shieldBadgeLinks = {
-  apache2: "https://img.shields.io/badge/License-Apache_2.0-blue.svg",
-  bsd2: "https://img.shields.io/badge/License-BSD_2--Clause-orange.svg",
-  bsd3: "https://img.shields.io/badge/License-BSD_3--Clause-blue.svg",
-  gpl2: "https://img.shields.io/badge/License-GPL_v2-blue.svg",
-  gpl3: "https://img.shields.io/badge/License-GPLv3-blue.svg",
-  mit: "https://img.shields.io/badge/License-MIT-yellow.svg"
-};
+const shieldBadgeLinks = new Map();
+const licenseLinks = new Map();
 
-const licenseLinks = {
-  apache2: "https://opensource.org/licenses/Apache-2.0",
-  bsd2: "https://opensource.org/licenses/BSD-2-Clause",
-  bsd3: "https://opensource.org/licenses/BSD-3-Clause",
-  gpl2: "https://www.gnu.org/licenses/old-licenses/gpl-2.0.en.html",
-  gpl3: "https://www.gnu.org/licenses/gpl-3.0",
-  mit: "https://opensource.org/licenses/MIT"
-}
+[
+	"https://img.shields.io/badge/License-Apache_2.0-blue.svg",
+	"https://img.shields.io/badge/License-BSD_2--Clause-orange.svg",
+	"https://img.shields.io/badge/License-BSD_3--Clause-blue.svg",
+	"https://img.shields.io/badge/License-GPL_v2-blue.svg",
+	"https://img.shields.io/badge/License-GPLv3-blue.svg",
+	"https://img.shields.io/badge/License-MIT-yellow.svg"
+].forEach((shieldLink, i) => shieldBadgeLinks.set(licenseCommonNames[i], shieldLink));
 
-// TODO: Create a function that returns a license badge based on which license is passed in
-// If there is no license, return an empty string
+[
+	"https://opensource.org/licenses/Apache-2.0",
+	"https://opensource.org/licenses/BSD-2-Clause",
+	"https://opensource.org/licenses/BSD-3-Clause",
+	"https://www.gnu.org/licenses/old-licenses/gpl-2.0.en.html",
+	"https://www.gnu.org/licenses/gpl-3.0",
+	"https://opensource.org/licenses/MIT"
+].forEach((licenseLink, i) => licenseLinks.set(licenseCommonNames[i], licenseLink));
+
+
+// Render a shield license badge. If there is no license, return an empty string
 function renderLicenseBadge(license) {
-  return `![badge of the ${license} license](${shieldBadgeLinks[license]})`;
+	return licenseCommonNames.includes(license) ? `![Badge of the ${license} license](${shieldBadgeLinks.get(license)})` : "";
 }
 
-// TODO: Create a function that returns the license link
-// If there is no license, return an empty string
-function renderLicenseLink(license) {}
+// Render a link to the license homepage. If there is no license, return an empty string
+function renderLicenseLink(license) {
+	return licenseCommonNames.includes(license) ? licenseLinks.get(license) : "";
+}
 
-// TODO: Create a function that returns the license section of README
-// If there is no license, return an empty string
+// Render the complete License section in the README. If there is no license, return an empty string
+function renderLicenseSection(license) {
+	if (!license) {
+		return "";
+	}
+	return `# License\n\nThis project is covered under the ${license} license\nFor more information refer to: ${renderLicenseLink(license)}\n\n`;
+}
 
-
+// Regex's used for parsing markdown
 const sectionRe = new RegExp("^[\t\u0020]*(?<level>#{1,6})[\t\u0020]*(?<name>.+)");
 const newLineRe = new RegExp("\r?\n+");
 
@@ -61,8 +72,6 @@ class Section {
 	Section traversal is handled by two properties of the Section object:
 		'parent' -> parent section of the current section
 		'subsections' -> an array of all sub sections of the current section
-	
-	The returned array can be flattened for creation into a table of contents
 */
 function createSectionTree(markdownText) {
 	let sectionTree = [];
@@ -81,8 +90,8 @@ function createSectionTree(markdownText) {
 			continue;
 		}
 
-		// If the previous section has no parent then it is a root section and we add the
-		// section immediately to the parent's subsection
+		// If the previous section has no parent then it is a root section. We add the
+		// current section immediately to the root subsections
 		if (!prevSection.parent) {
 			currentSection.parent = root;
 			root.subsections.push(currentSection);
@@ -90,6 +99,8 @@ function createSectionTree(markdownText) {
 			continue;
 		}
 
+		// If the current section has a deeper level than the previous section then the
+		// current section is a subsection of the previous section
 		if (currentSection.level > prevSection.level) {
 			currentSection.parent = prevSection;
 			prevSection.subsections.push(currentSection);
@@ -106,8 +117,6 @@ function createSectionTree(markdownText) {
 	return sectionTree;
 }
 
-function renderLicenseSection(license) {}
-
 /*
 	 Create a table of contents markdown string like the following:
 
@@ -121,45 +130,75 @@ function renderLicenseSection(license) {}
 
 	 ## Header 2
 	 ...
-*/
-/*
-	 Final function in the pipeline of rendering a markdown table of contents from user
-	input. All that remains is to properly place the table of contents within the document.
-
-	[Project Title]
-	text
-
-	[Table of Contents]
-	...
-
-	[Remainder of Document]
 */	 
 function renderTableOfContents(sectionTree) {
 	let templateString = `# Table of Contents\n`;
-	function walkSection(section, n) {
+	let rootCount = 0;
+	function walkSection(section, sectionCount, isRoot=false) {
 		templateString += "\t\t".repeat(section.level - 1);
-		templateString += `${n+1}. [${section.name}](#${section.name.trim().replaceAll(" ", "-")})\n`;
-		let m = 0;
+		if (isRoot) {
+			sectionCount = rootCount;
+			rootCount++;
+		}
+		templateString += `${sectionCount+1}. [${section.name}](#${section.name.trim().replaceAll(" ", "-")})\n`;
+		
+		let subSectionCount = 0;
+
 		for (const subsection of section.subsections) {
-			walkSection(subsection, m);
-			m++;
+			if (subsection.level === 1) {
+				walkSection(subsection, rootCount, true);
+			} else {
+				walkSection(subsection, subSectionCount); // Start a new 
+				subSectionCount++;
+			}
 		}
 	}
-	sectionTree.forEach((section, i) => walkSection(section, i));
+	sectionTree.forEach((section, i) => walkSection(section, i, true));
 	return templateString;
 }
 
-// TODO: Create a function to generate markdown for README
-function generateMarkdown(title, wantTableOfContents=false, ...sections) {
-	let markdownText = `${title}\n\n`;
-	if (wantTableOfContents) {
-		const sectionTree = createSectionTree(sections);
-		markdownText += `${renderTableOfContents(sectionTree)}\n`;
+// Render the Questions section of the README by providing a link to the users' Github account
+// and the provided email address
+function renderQuestionsSection(username, email) {
+	// If no username and email are provided then we trash the Questions section
+	if (!username && !email) {
+		return "";
 	}
-	for (const section of sections) {
-		markdownText += `${section.text}\n`;
-	}
-	return markdownText;
+	return `# Questions\n\nGitHub Profile: https://github.com/${username}\nDirect questions to: ${email}`;
 }
 
-module.exports = [generateMarkdown, Section];
+// Final function in the pipeline. Using the various parameters, generate a block of markdown text that
+// is ready to be written directly to a README file
+function generateMarkdown(title, license, sections, username, email, wantTableOfContents=false) {
+	let markdownText = `# ${title}\n\n`;
+
+	// render license badge
+	if (license) {
+		markdownText += `${renderLicenseBadge(license)}\n\n`;
+	}
+
+	// render table of contents only if the user wanted them
+	let tableOfContents = "";
+	if (wantTableOfContents) {
+		sections.forEach((section, i) => section.subsections = createSectionTree(section.text));
+		tableOfContents = `${renderTableOfContents(sections)}\n\n`;
+	}
+	markdownText += tableOfContents;
+
+	// Add the actual text for each section the user may have added to the README
+	for (const section of sections) {
+		markdownText += `# ${section.name}\n`;
+		if (section.text) {
+			markdownText += `${section.text}\n`;
+		}
+		markdownText += '\n';
+	}
+	// Render the license section
+	markdownText += renderLicenseSection(license)
+
+	// Finally, add the questions section to the readme and then return it
+	return markdownText + renderQuestionsSection(username, email);
+}
+
+// Export our generateMarkdown function and the Section class. The Section class is needed
+module.exports = {generateMarkdown, Section};
