@@ -32,7 +32,7 @@ was done with Node v20.10.0
 
 ## To Install
 Download this repository using the method of your choice.
-`cd` into it and then run the command `node install` to install the necessary
+`cd` into it and then run the command `npm install` to install the necessary
 inquirer package
  
 
