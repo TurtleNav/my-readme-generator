@@ -135,7 +135,7 @@ function renderTableOfContents(sectionTree) {
 	let templateString = `# Table of Contents\n`;
 	let rootCount = 0;
 	function walkSection(section, sectionCount, isRoot=false) {
-		templateString += "\t\t".repeat(section.level - 1);
+		templateString += "\t".repeat(section.level - 1);
 		if (isRoot) {
 			sectionCount = rootCount;
 			rootCount++;

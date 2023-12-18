@@ -6,13 +6,13 @@ This README was generated 100% using my-readme-generator
 # Table of Contents
 1. [Installation Instructions](#Installation-Instructions)
 2. [Dependencies](#Dependencies)
-		1. [Inquirer](#Inquirer)
-		2. [Node.js](#Node.js)
-		3. [To Install](#To-Install)
+	1. [Inquirer](#Inquirer)
+	2. [Node.js](#Node.js)
+	3. [To Install](#To-Install)
 3. [Usage Information](#Usage-Information)
-		1. [Refer to Walkthrough Video:](#Refer-to-Walkthrough-Video:)
+	1. [Refer to Walkthrough Video:](#Refer-to-Walkthrough-Video)
 4. [Contribution Guidelines](#Contribution-Guidelines)
-		1. [Expanding my-readme-generator](#Expanding-my-readme-generator)
+	1. [Expanding my-readme-generator](#Expanding-my-readme-generator)
 5. [Tests](#Tests)
 6. [Contributing](#Contributing)
 
@@ -38,7 +38,7 @@ inquirer package
 
 
 # Usage Information
-## Refer to Walkthrough Video:
+## Refer to Walkthrough Video
 https://drive.google.com/file/d/1sNN5FOlsAK-s3wK4VBSw5dAQpwKndlfL/view?usp=drive_link
 
 
@@ -51,8 +51,6 @@ Fork this project and do what you want! I am receptive to any pull requests
 # Tests
 No tests were provided for this project
 
-
-# Contributing
 
 # License
 

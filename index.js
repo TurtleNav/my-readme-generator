@@ -45,7 +45,6 @@ async function promptRound1() {
 			choices: [
 				"Table of Contents", "Installation Instructions", "Dependencies",
 				"Usage Information", "Contribution Guidelines", "Tests",
-				"Contributing"
 			],
 		},
 	];
